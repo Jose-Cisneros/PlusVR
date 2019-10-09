@@ -1,5 +1,4 @@
 import * as express from 'express';
-import medicController from '../controllers/medicController';
 
 class IndexController {
   public router = express.Router()
