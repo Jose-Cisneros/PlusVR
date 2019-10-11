@@ -4,7 +4,7 @@ import * as mongoose from 'mongoose';
 const personSchema = new mongoose.Schema({
     firstName: String,
     lastName: String,
-    birthDate: Date,
+    birthDate: String,
     dni: Number,
     phone: Number
 
