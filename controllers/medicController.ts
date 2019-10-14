@@ -20,9 +20,11 @@ class MedicController {
     this.router.post(this.BASE_PATH + 'create', this.createDoctor);
     this.router.get(this.BASE_PATH + 'all', this.getAllDoctors);
     this.router.get(this.BASE_PATH + ':id', this.getDoctorById);
+    this.router.post(this.BASE_PATH + 'work/:id', this.addWorkableDay);
   }
 
   // GET
+  // /vr/api/doctor/
 
   private getAllDoctors = (request: express.Request, response: express.Response) => {
     doctorModel.find().then(doctors => {
@@ -31,6 +33,7 @@ class MedicController {
   };
 
   // GET by ID
+  // /vr/api/doctor/:id
 
   private getDoctorById = (request: express.Request, response: express.Response) => {
     const id = request.params.id;
@@ -41,6 +44,7 @@ class MedicController {
   };
 
   /*
+/vr/api/doctor/
 
 POST:{
   person: {
@@ -71,6 +75,39 @@ POST:{
         await savedDoctor.populate('person').execPopulate();
         response.send(savedDoctor);
       });
+    });
+  };
+
+  /*
+POST 
+/vr/api/doctor/work/:id
+body:  
+{
+  WorkableDay:{
+    name: String,
+    startHour: Number,
+    finishHour: Number,
+    breakStart: Number,
+    breakFinish: Number,
+    maxAppointments: Number
+  }
+}
+*/
+
+  private addWorkableDay = (request: express.Request, response: express.Response) => {
+    const id = request.params.id;
+    doctorModel.findById(id).then(doctor => {
+      const dayAlreadyExists = doctor.workableWeek.find(day => day.name === request.body.workableDay.name);
+      if (dayAlreadyExists) {
+        doctor.workableWeek = doctor.workableWeek.filter( element => !(element.name === dayAlreadyExists.name));
+        doctor.workableWeek.push(request.body.workableDay);
+        doctor.save();
+        response.send(`Day ${request.body.workableDay.name} updated succesfully`);
+      } else {
+        doctor.workableWeek.push(request.body.workableDay);
+        doctor.save();
+        response.send(`Day ${request.body.workableDay.name} added succesfully`);
+      }
     });
   };
 }
