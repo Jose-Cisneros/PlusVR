@@ -1,5 +1,14 @@
 import * as mongoose from 'mongoose';
 
+const workableDaySchema = new mongoose.Schema({
+    name: String,
+    startHour: Number,
+    finishHour: Number,
+    breakStart: Number,
+    breakFinish: Number,
+    maxAppointments: Number
+})
+
 
 const doctorSchema = new mongoose.Schema({
     person: {
@@ -7,6 +16,7 @@ const doctorSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
     },
     speciality: String,
+    workableWeek: [workableDaySchema]
 
 })
 
