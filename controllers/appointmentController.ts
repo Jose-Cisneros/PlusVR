@@ -29,6 +29,7 @@ class AppointmentController {
   */
   private newAppointment = (request: express.Request, response: express.Response) => {
     const newAppointment = request.body;
+    newAppointment.approved = false;
 
     const scheduledAppointment = new appointmentModel(newAppointment);
 
@@ -44,12 +45,20 @@ class AppointmentController {
   }
 
   // GET  /vr/api/appointment/patient/:id
-  private getPatientAppoinmentsById = (request: express.Request, response: express.Response) => {
+  private getPatientAppoinmentsById = async (request: express.Request, response: express.Response) => {
     const id = request.params.id;
-    appointmentModel.find({patient: id}).then(appointments => {
-      response.send(appointments);    
-    });
-  }
+    const populated = await appointmentModel.find({patient: id}).populate({
+      path: 'patient',
+      populate: {
+        path:'person'
+      }
+    })
+    
+      response.send(populated);    
+    };
+  
+
+
 }
 
 export default AppointmentController;
