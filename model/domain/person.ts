@@ -6,7 +6,8 @@ const personSchema = new mongoose.Schema({
     lastName: String,
     birthDate: String,
     dni: Number,
-    phone: Number
+    phone: Number,
+    photo: String
 
 })
 

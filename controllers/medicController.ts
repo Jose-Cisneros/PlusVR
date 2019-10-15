@@ -19,6 +19,7 @@ class MedicController {
 
     this.router.post(this.BASE_PATH + 'create', this.createDoctor);
     this.router.get(this.BASE_PATH + 'all', this.getAllDoctors);
+    this.router.post(this.BASE_PATH + 'speciality/:speciality', this.getDoctorsBySpecialty);
     this.router.get(this.BASE_PATH + ':id', this.getDoctorById);
     this.router.post(this.BASE_PATH + 'work/:id', this.addWorkableDay);
   }
@@ -31,6 +32,17 @@ class MedicController {
       response.send(doctors);
     });
   };
+
+   // GET
+  // /vr/api/doctor/speciality/:speciality
+
+  private getDoctorsBySpecialty = (request: express.Request, response: express.Response) => {
+    const speciality = request.params.speciality;
+    doctorModel.find({speciality: speciality}).then(doctors => {
+      response.send(doctors);
+    });
+  };
+
 
   // GET by ID
   // /vr/api/doctor/:id
