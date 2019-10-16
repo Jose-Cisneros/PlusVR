@@ -37,18 +37,23 @@ class AppointmentController {
   };
 
   // GET  /vr/api/appointment/doctor/:id
-  private getDoctorAppoinmentsById = (request: express.Request, response: express.Response) => {
+  private getDoctorAppoinmentsById = async (request: express.Request, response: express.Response) => {
     const id = request.params.id;
-    appointmentModel.find({doctor: id}).then(appointments => {
-      response.send(appointments);
-    });
+    const populated = await appointmentModel.find({doctor: id}).populate({
+      path: 'patient',
+      populate: {
+        path:'person'
+      }
+    })
+    
+      response.send(populated);    
   }
 
   // GET  /vr/api/appointment/patient/:id
   private getPatientAppoinmentsById = async (request: express.Request, response: express.Response) => {
     const id = request.params.id;
     const populated = await appointmentModel.find({patient: id}).populate({
-      path: 'patient',
+      path: 'doctor',
       populate: {
         path:'person'
       }
