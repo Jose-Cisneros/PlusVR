@@ -15,6 +15,9 @@ class AppointmentController {
     this.router.post(this.BASE_PATH + 'new', this.newAppointment);
     this.router.get(this.BASE_PATH + 'doctor/:id', this.getDoctorAppoinmentsById);
     this.router.get(this.BASE_PATH + 'patient/:id', this.getPatientAppoinmentsById);
+    this.router.get(this.BASE_PATH + 'doctor/pending/:id', this.getPendingAppoinmentsById);
+    this.router.get(this.BASE_PATH + 'doctor/approved/:id', this.getApprovedAppoinmentsById);
+    this.router.post(this.BASE_PATH + 'approve/:id', this.approveAppointment);
 
   }
 
@@ -49,6 +52,32 @@ class AppointmentController {
       response.send(populated);    
   }
 
+  // GET  /vr/api/appointment/doctor/pending/:id
+  private getPendingAppoinmentsById = async (request: express.Request, response: express.Response) => {
+    const id = request.params.id;
+    const populated = await appointmentModel.find({doctor: id, approved: false}).populate({
+      path: 'patient',
+      populate: {
+        path:'person'
+      }
+    })
+    
+      response.send(populated);    
+  }
+
+  // GET  /vr/api/appointment/doctor/approved/:id
+  private getApprovedAppoinmentsById = async (request: express.Request, response: express.Response) => {
+    const id = request.params.id;
+    const populated = await appointmentModel.find({doctor: id, approved: true}).populate({
+      path: 'patient',
+      populate: {
+        path:'person'
+      }
+    })
+    
+      response.send(populated);    
+  }
+
   // GET  /vr/api/appointment/patient/:id
   private getPatientAppoinmentsById = async (request: express.Request, response: express.Response) => {
     const id = request.params.id;
@@ -62,8 +91,22 @@ class AppointmentController {
       response.send(populated);    
     };
   
+  // POST /vr/api/appointment/approve/:id
+  private approveAppointment = async (request: express.Request, response: express.Response) => {
+  const id = request.params.id;
 
+  appointmentModel.findById(id).then(
+    model => {
+      if (model.approved) {
+        response.status(400).send('Turn is already approved');
+      }
+      model.approved = true;
+      model.save();
+      response.send('Turn was approved!')
+    }
+  )
 
+  }
 }
 
 export default AppointmentController;
