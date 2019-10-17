@@ -18,6 +18,8 @@ class AppointmentController {
     this.router.get(this.BASE_PATH + 'doctor/pending/:id', this.getPendingAppoinmentsById);
     this.router.get(this.BASE_PATH + 'doctor/approved/:id', this.getApprovedAppoinmentsById);
     this.router.post(this.BASE_PATH + 'approve/:id', this.approveAppointment);
+    this.router.post(this.BASE_PATH + 'reject/:id', this.rejectAppointment);
+
 
   }
 
@@ -33,6 +35,7 @@ class AppointmentController {
   private newAppointment = (request: express.Request, response: express.Response) => {
     const newAppointment = request.body;
     newAppointment.approved = false;
+    newAppointment.rejected = false;
 
     const scheduledAppointment = new appointmentModel(newAppointment);
 
@@ -55,7 +58,7 @@ class AppointmentController {
   // GET  /vr/api/appointment/doctor/pending/:id
   private getPendingAppoinmentsById = async (request: express.Request, response: express.Response) => {
     const id = request.params.id;
-    const populated = await appointmentModel.find({doctor: id, approved: false}).populate({
+    const populated = await appointmentModel.find({doctor: id, approved: false, rejected: false}).populate({
       path: 'patient',
       populate: {
         path:'person'
@@ -98,7 +101,7 @@ class AppointmentController {
   appointmentModel.findById(id).then(
     model => {
       if (model.approved) {
-        response.status(400).send('Turn is already approved');
+        response.status(400).send('Turn was already approved');
       }
       model.approved = true;
       model.save();
@@ -107,6 +110,24 @@ class AppointmentController {
   )
 
   }
+
+
+  // POST /vr/api/appointment/reject/:id
+  private rejectAppointment = async (request: express.Request, response: express.Response) => {
+    const id = request.params.id;
+
+    appointmentModel.findById(id).then(
+      model => {
+        if (model.rejected) {
+          response.status(400).send('Turn was already rejected');
+        }
+        model.rejected = true;
+        model.save();
+        response.send('Turn was rejected!')
+      }
+    )
+
+    }
 }
 
 export default AppointmentController;

@@ -3,6 +3,7 @@ import * as mongoose from 'mongoose';
 
 const appointmentSchema = new mongoose.Schema({
   approved: Boolean,
+  rejected: Boolean,
   date: String,
   hour: String,
   info: String,
