@@ -10,6 +10,10 @@ const workableDaySchema = new mongoose.Schema({
     maxAppointments: Number
 })
 
+const prepaidSchema = new mongoose.Schema({
+    name: String
+})
+
 
 const doctorSchema = new mongoose.Schema({
     person: {
@@ -17,7 +21,9 @@ const doctorSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
     },
     speciality: String,
-    workableWeek: [workableDaySchema]
+    workableWeek: [workableDaySchema],
+    rating: Number,
+    prepaid: [prepaidSchema]
 
 })
 
