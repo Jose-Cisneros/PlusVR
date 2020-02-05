@@ -2,6 +2,7 @@ import * as mongoose from 'mongoose';
 
 const workableDaySchema = new mongoose.Schema({
     name: String,
+    number: Number,
     startHour: Number,
     finishHour: Number,
     breakStart: Number,

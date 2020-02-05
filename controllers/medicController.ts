@@ -95,6 +95,7 @@ body:
 {
   WorkableDay:{
     name: String,
+    number: Number,
     startHour: Number,
     finishHour: Number,
     breakStart: Number,
@@ -107,16 +108,16 @@ body:
   private addWorkableDay = (request: express.Request, response: express.Response) => {
     const id = request.params.id;
     doctorModel.findById(id).then(doctor => {
-      const dayAlreadyExists = doctor.workableWeek.find(day => day.name === request.body.workableDay.name);
+      const dayAlreadyExists = doctor.workableWeek.find(day => day.number === request.body.workableDay.number);
       if (dayAlreadyExists) {
-        doctor.workableWeek = doctor.workableWeek.filter( element => !(element.name === dayAlreadyExists.name));
+        doctor.workableWeek = doctor.workableWeek.filter( element => !(element.number === dayAlreadyExists.number));
         doctor.workableWeek.push(request.body.workableDay);
         doctor.save();
-        response.send(`Day ${request.body.workableDay.name} updated succesfully`);
+        response.send(`Day ${request.body.workableDay.number} updated succesfully`);
       } else {
         doctor.workableWeek.push(request.body.workableDay);
         doctor.save();
-        response.send(`Day ${request.body.workableDay.name} added succesfully`);
+        response.send(`Day ${request.body.workableDay.number} added succesfully`);
       }
     });
   };
