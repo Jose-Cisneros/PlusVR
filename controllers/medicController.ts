@@ -22,6 +22,7 @@ class MedicController {
     this.router.get(this.BASE_PATH + 'speciality/:speciality', this.getDoctorsBySpecialty);
     this.router.get(this.BASE_PATH + ':id', this.getDoctorById);
     this.router.post(this.BASE_PATH + 'work/:id', this.addWorkableDay);
+    this.router.post(this.BASE_PATH + 'prepaid/:id', this.addPrepaid);
   }
 
   // GET
@@ -118,6 +119,31 @@ body:
         doctor.workableWeek.push(request.body.workableDay);
         doctor.save();
         response.send(`Day ${request.body.workableDay.number} added succesfully`);
+      }
+    });
+  };
+
+    /*
+POST 
+/vr/api/doctor/prepaid/:id
+body:  
+{
+  prepaid:{
+    name: String,
+  }
+}
+*/
+
+  private addPrepaid = (request: express.Request, response: express.Response) => {
+    const id = request.params.id;
+    doctorModel.findById(id).then(doctor => {
+      const prepaidAlreadyExists = doctor.prepaid.find(org => org.name === request.body.prepaid.name);
+      if (prepaidAlreadyExists) {
+        response.send(`Prepaid ${request.body.prepaid.name} already exists`);
+      } else {
+        doctor.prepaid.push(request.body.prepaid);
+        doctor.save();
+        response.status(400).send(`Prepaid ${request.body.prepaid.name} added succesfully`);
       }
     });
   };
