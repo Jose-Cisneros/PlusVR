@@ -1,6 +1,8 @@
 import * as express from 'express';
 import { ApiConstants } from '../helpers/constants/api.constants';
 import appointmentModel from '../model/domain/appointment';
+import doctorModel from '../model/domain/doctor';
+import { DateHelper } from '../helpers/date.helper';
 
 class AppointmentController {
   public router = express.Router();
@@ -29,17 +31,32 @@ class AppointmentController {
   {
       doctor_id: id,
       patient_id: id,
-      date: date;
+      date: date,
+      hour: hour
   }
   */
-  private newAppointment = (request: express.Request, response: express.Response) => {
+  private newAppointment = async (request: express.Request, response: express.Response) => {
     const newAppointment = request.body;
     newAppointment.approved = false;
     newAppointment.rejected = false;
+    if (DateHelper.isAfterThanToday(newAppointment.date)) {
+      //check if doctor has any appointment at that time
+      const appointments = await appointmentModel.find({doctor: newAppointment.doctor});
+      if (appointments.find(appointment => appointment.date === newAppointment.date && appointment.hour === newAppointment.hour)) {
+        response.status(400).send('Doctor already has a turn on ' + newAppointment.date + ' at ' + newAppointment.hour);
+      } else {
+        const dayOfWeek = DateHelper.getDayOfWeek(newAppointment.date);
+        const workableWeek = await doctorModel.findById(newAppointment.doctor).populate('workableWeek.workableWeek');
+        if (!!workableWeek.workableWeek.find(day => day.number === dayOfWeek)) {
+          const scheduledAppointment = new appointmentModel(newAppointment);
+          scheduledAppointment.save().then(newAppointment => response.send(newAppointment));
+        }
+        else response.status(400).send('Doctor does not work that day');
 
-    const scheduledAppointment = new appointmentModel(newAppointment);
+      }
+    } else response.status(400).send('The date for the appointment must be after today');
 
-    scheduledAppointment.save().then(newAppointment => response.send(newAppointment));
+   
   };
 
   // GET  /vr/api/appointment/doctor/:id
@@ -128,6 +145,7 @@ class AppointmentController {
     )
 
     }
+
 }
 
 export default AppointmentController;
