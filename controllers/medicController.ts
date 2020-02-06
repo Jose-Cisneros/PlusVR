@@ -117,6 +117,10 @@ body:
         doctor.save();
         response.send(`Day ${request.body.workableDay.number} updated succesfully`);
         return;
+        } else {
+          doctor.workableWeek.push(request.body.workableDay);
+          doctor.save();
+          response.send(`Day ${request.body.workableDay.number} added succesfully`);
         }
       } else {
         doctor.workableWeek.push(request.body.workableDay);
