@@ -109,12 +109,15 @@ body:
   private addWorkableDay = (request: express.Request, response: express.Response) => {
     const id = request.params.id;
     doctorModel.findById(id).then(doctor => {
-      const dayAlreadyExists = doctor.workableWeek.find(day => day.number === request.body.workableDay.number);
-      if (dayAlreadyExists) {
+      if (doctor.workableWeek.length > 0) {
+        const dayAlreadyExists = doctor.workableWeek.find(day => day.number === request.body.workableDay.number);
+        if (dayAlreadyExists) {
         doctor.workableWeek = doctor.workableWeek.filter( element => !(element.number === dayAlreadyExists.number));
         doctor.workableWeek.push(request.body.workableDay);
         doctor.save();
         response.send(`Day ${request.body.workableDay.number} updated succesfully`);
+        return;
+        }
       } else {
         doctor.workableWeek.push(request.body.workableDay);
         doctor.save();
