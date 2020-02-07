@@ -3,6 +3,7 @@ import { ApiConstants } from '../helpers/constants/api.constants';
 import appointmentModel from '../model/domain/appointment';
 import doctorModel from '../model/domain/doctor';
 import { DateHelper } from '../helpers/date.helper';
+import moment = require('moment');
 
 class AppointmentController {
   public router = express.Router();
@@ -19,6 +20,8 @@ class AppointmentController {
     this.router.get(this.BASE_PATH + 'patient/:id', this.getPatientAppoinmentsById);
     this.router.get(this.BASE_PATH + 'doctor/pending/:id', this.getPendingAppoinmentsById);
     this.router.get(this.BASE_PATH + 'doctor/approved/:id', this.getApprovedAppoinmentsById);
+    this.router.get(this.BASE_PATH + 'doctor/date/:id/:date', this.getDoctorAppointmentsByDate);
+    this.router.get(this.BASE_PATH + 'doctor/available/:id/:date', this.getDoctorAvailableAppointmentsByDate);
     this.router.post(this.BASE_PATH + 'approve/:id', this.approveAppointment);
     this.router.post(this.BASE_PATH + 'reject/:id', this.rejectAppointment);
 
@@ -59,6 +62,7 @@ class AppointmentController {
    
   };
 
+
   // GET  /vr/api/appointment/doctor/:id
   private getDoctorAppoinmentsById = async (request: express.Request, response: express.Response) => {
     const id = request.params.id;
@@ -84,6 +88,48 @@ class AppointmentController {
     
       response.send(populated);    
   }
+
+
+    // GET /vr/api/appointment/doctor/date/:id/:date
+    private getDoctorAppointmentsByDate =  async (request: express.Request, response: express.Response) => {
+      const id = request.params.id;
+      const date = request.params.date;
+      const appointments = await this.retrieveDoctorAppointmentsByDate(id,date);
+      
+      response.send(appointments);    
+    }
+
+    // GET /vr/api/appointment/doctor/available/:id/:date
+    private getDoctorAvailableAppointmentsByDate =  async (request: express.Request, response: express.Response) => {
+      const id = request.params.id;
+      const date = request.params.date;
+      if (!DateHelper.isAfterThanToday(date)) {
+      response.status(400).send('date is before today');
+      return;
+      }
+      const appointments = await this.retrieveDoctorAppointmentsByDate(id,date);
+      const workableWeekData = await this.retrieveWorkableWeekByDoctor(id);
+      const workableDayData = workableWeekData.find( day => day.number === DateHelper.getDayOfWeek(date))
+      let availables = [];
+      if (workableDayData) {
+        let initialHour = workableDayData.startHour;
+        let finalHour = workableDayData.finishHour;
+        let initialDate = moment(date + ' ' + initialHour +':00' , 'DD-MM-YYYY H:mm');
+        let finalDate = moment(date + ' ' + finalHour +':00' , 'DD-MM-YYYY H:mm');
+        while (initialDate.isBefore(finalDate)) {
+          const formattedHour = initialDate.format('H:mm');
+          if (!appointments.find(appointment => appointment.hour === formattedHour )) {
+          availables.push(formattedHour);
+          }
+          initialDate = initialDate.add(30,'m');
+
+        } 
+        response.send(availables);
+      } else {
+        response.status(400).send('Doctor does not work that week day');
+        return;  
+      } 
+    }
 
   // GET  /vr/api/appointment/doctor/approved/:id
   private getApprovedAppoinmentsById = async (request: express.Request, response: express.Response) => {
@@ -145,6 +191,22 @@ class AppointmentController {
     )
 
     }
+
+    //utility methods (deberian estar en otros archivos)
+    private async retrieveDoctorAppointmentsByDate(id: String, date: String) {
+      const appointments = await appointmentModel.find({doctor: id}).find({date: date}).populate({
+        path: 'patient',
+        populate: {
+          path:'person'
+        }
+      })
+      return appointments
+    }
+
+    private async retrieveWorkableWeekByDoctor(id: String) {
+      const doctor = await doctorModel.findById(id);
+      return doctor.workableWeek;
+    };
 
 }
 
