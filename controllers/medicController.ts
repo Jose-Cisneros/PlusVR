@@ -22,6 +22,7 @@ class MedicController {
     this.router.get(this.BASE_PATH + 'speciality/:speciality', this.getDoctorsBySpecialty);
     this.router.get(this.BASE_PATH + ':id', this.getDoctorById);
     this.router.post(this.BASE_PATH + 'work/:id', this.addWorkableDay);
+    this.router.get(this.BASE_PATH + '/vr/api/doctor/week/:id', this.getWorkableWeekById);    
     this.router.post(this.BASE_PATH + 'prepaid/:id', this.addPrepaid);
   }
 
@@ -51,6 +52,16 @@ class MedicController {
     doctorModel.findById(id).then(async doctor => {
       await doctor.populate('person').execPopulate();
       response.send(doctor);
+    });
+  };
+
+    // GET by ID
+  // /vr/api/doctor/week/:id
+
+  private getWorkableWeekById = (request: express.Request, response: express.Response) => {
+    const id = request.params.id;
+    doctorModel.findById(id).then(doctor => {
+      response.send(doctor.workableWeek);
     });
   };
 
