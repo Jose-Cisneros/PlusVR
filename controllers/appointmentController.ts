@@ -21,6 +21,7 @@ class AppointmentController {
     this.router.get(this.BASE_PATH + 'doctor/pending/:id', this.getPendingAppoinmentsById);
     this.router.get(this.BASE_PATH + 'doctor/approved/:id', this.getApprovedAppoinmentsById);
     this.router.get(this.BASE_PATH + 'doctor/date/:id/:date', this.getDoctorAppointmentsByDate);
+    this.router.get(this.BASE_PATH + 'doctor/:speciality/:date', this.getDoctorsAvailableForADate);
     this.router.get(this.BASE_PATH + 'doctor/available/:id/:date', this.getDoctorAvailableAppointmentsByDate);
     this.router.post(this.BASE_PATH + 'approve/:id', this.approveAppointment);
     this.router.post(this.BASE_PATH + 'reject/:id', this.rejectAppointment);
@@ -109,11 +110,12 @@ class AppointmentController {
       }
       const appointments = await this.retrieveDoctorAppointmentsByDate(id,date);
       const workableWeekData = await this.retrieveWorkableWeekByDoctor(id);
-      const workableDayData = workableWeekData.find( day => day.number === DateHelper.getDayOfWeek(date))
+      const workableDayData = workableWeekData.find( day => day.number === DateHelper.getDayOfWeek(date));
       let availables = [];
       let breakTime = [];
 
       if (workableDayData) {
+        // Estos deberia en una funcion porque basicamente se repite lo mismo dos veces
         let initialHour = workableDayData.startHour;
         let finalHour = workableDayData.finishHour;
         let initialDate = moment(date + ' ' + initialHour +':00' , 'DD-MM-YYYY H:mm');
@@ -207,6 +209,40 @@ class AppointmentController {
 
     }
 
+    // GET /vr/api/appointment/:speciality/:date
+    private getDoctorsAvailableForADate = async (request: express.Request, response: express.Response) => {
+      const speciality = request.params.speciality;
+      const date = request.params.date;
+      const doctors = await doctorModel.find({speciality: speciality});
+      let responseDoctors = await this.retrieveAvailableDoctors(doctors, date);
+    
+      response.send(responseDoctors);
+
+    }
+
+    private async retrieveAvailableDoctors(doctors, date) {
+      let responseDoctors = [];
+      for (const doctor of doctors){
+        await this.addDoctorIfAvailable(doctor, responseDoctors, date);
+      }
+      return responseDoctors;
+    }
+
+    private async addDoctorIfAvailable(doctor, responseDoctors, date) {
+      const workableWeekData = await this.retrieveWorkableWeekByDoctor(doctor.id);
+      const workableDayData = workableWeekData.find( day => day.number === DateHelper.getDayOfWeek(date));
+      if (workableDayData) {
+
+        const appointments = await this.retrieveDoctorAppointmentsByDate(doctor.id,date);
+        if (workableDayData.maxAppointments > appointments.length){
+          responseDoctors.push(doctor)
+        }
+        
+      }
+    }
+    
+    
+
     //utility methods (deberian estar en otros archivos)
     private async retrieveDoctorAppointmentsByDate(id: String, date: String) {
       const appointments = await appointmentModel.find({doctor: id}).find({date: date}).populate({
@@ -222,6 +258,7 @@ class AppointmentController {
       const doctor = await doctorModel.findById(id);
       return doctor.workableWeek;
     };
+
 
 }
 
