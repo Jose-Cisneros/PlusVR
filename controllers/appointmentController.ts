@@ -111,6 +111,8 @@ class AppointmentController {
       const workableWeekData = await this.retrieveWorkableWeekByDoctor(id);
       const workableDayData = workableWeekData.find( day => day.number === DateHelper.getDayOfWeek(date))
       let availables = [];
+      let breakTime = [];
+
       if (workableDayData) {
         let initialHour = workableDayData.startHour;
         let finalHour = workableDayData.finishHour;
@@ -123,7 +125,20 @@ class AppointmentController {
           }
           initialDate = initialDate.add(30,'m');
 
-        } 
+        }
+
+        let breakInitialHour = workableDayData.breakStart;
+        let breakFinalHour = workableDayData.breakFinish;
+        let breakInitialDate = moment(date + ' ' + breakInitialHour +':00' , 'DD-MM-YYYY H:mm');
+        let breakFinalDate = moment(date + ' ' + breakFinalHour +':00' , 'DD-MM-YYYY H:mm');
+        while (breakInitialDate.isBefore(breakFinalDate)) {
+          const formattedHour = breakInitialDate.format('H:mm');
+          breakTime.push(formattedHour);
+          breakInitialDate = breakInitialDate.add(30,'m');
+        }
+
+        availables = availables.filter((el) => !breakTime.includes(el));
+
         response.send(availables);
       } else {
         response.status(400).send('Doctor does not work that week day');
