@@ -23,6 +23,7 @@ class AppointmentController {
     this.router.get(this.BASE_PATH + 'doctor/date/:id/:date', this.getDoctorAppointmentsByDate);
     this.router.get(this.BASE_PATH + 'doctor/:speciality/:date', this.getDoctorsAvailableForADate);
     this.router.get(this.BASE_PATH + 'doctor/available/:id/:date', this.getDoctorAvailableAppointmentsByDate);
+    this.router.get(this.BASE_PATH + 'next/:id', this.getNextAvailableAppointment);
     this.router.post(this.BASE_PATH + 'approve/:id', this.approveAppointment);
     this.router.post(this.BASE_PATH + 'reject/:id', this.rejectAppointment);
 
@@ -218,6 +219,54 @@ class AppointmentController {
     
       response.send(responseDoctors);
 
+    }
+
+      // GET /vr/api/appointment/next/:id
+      private getNextAvailableAppointment = async (request: express.Request, response: express.Response) => {
+        const id = request.params.id;
+        let searchDate = moment().add(1,'d').format("DD-MM-YYYY")
+        let appointmentFound = false;
+        while( !appointmentFound) {
+          const appointments = await this.retrieveDoctorAppointmentsByDate(id,searchDate);
+          const workableWeekData = await this.retrieveWorkableWeekByDoctor(id);
+          const workableDayData = workableWeekData.find( day => day.number === DateHelper.getDayOfWeek(searchDate));
+          let availables = [];
+          let breakTime = [];
+    
+          if (workableDayData) {
+            // Estos deberia en una funcion porque basicamente se repite lo mismo dos veces
+            let initialHour = workableDayData.startHour;
+            let finalHour = workableDayData.finishHour;
+            let initialDate = moment(searchDate + ' ' + initialHour +':00' , 'DD-MM-YYYY H:mm');
+            let finalDate = moment(searchDate + ' ' + finalHour +':00' , 'DD-MM-YYYY H:mm');
+            while (initialDate.isBefore(finalDate)) {
+              const formattedHour = initialDate.format('H:mm');
+              if (!appointments.find(appointment => appointment.hour === formattedHour )) {
+              availables.push(formattedHour);
+              }
+              initialDate = initialDate.add(30,'m');
+    
+            }
+    
+            let breakInitialHour = workableDayData.breakStart;
+            let breakFinalHour = workableDayData.breakFinish;
+            let breakInitialDate = moment(searchDate + ' ' + breakInitialHour +':00' , 'DD-MM-YYYY H:mm');
+            let breakFinalDate = moment(searchDate + ' ' + breakFinalHour +':00' , 'DD-MM-YYYY H:mm');
+            while (breakInitialDate.isBefore(breakFinalDate)) {
+              const formattedHour = breakInitialDate.format('H:mm');
+              breakTime.push(formattedHour);
+              breakInitialDate = breakInitialDate.add(30,'m');
+            }
+    
+            availables = availables.filter((el) => !breakTime.includes(el));
+            if(availables.length > 0) {
+              appointmentFound = true;
+              response.send({ date: searchDate, hour: availables[0]}) }
+
+        } else {
+          searchDate = moment(searchDate,"DD-MM-YYYY").add(1,'d').format("DD-MM-YYYY")
+        }
+      }
     }
 
     private async retrieveAvailableDoctors(doctors, date) {
