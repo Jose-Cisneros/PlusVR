@@ -1,7 +1,9 @@
+import { TokenValidation } from './../middleware/validateToken';
 import express = require('express');
 import { ApiConstants } from '../helpers/constants/api.constants';
 import doctorModel from '../model/domain/doctor';
 import personModel from '../model/domain/person';
+
 
 class MedicController {
   private BASE_PATH = ApiConstants.API_BASE_PATH + 'doctor/';
