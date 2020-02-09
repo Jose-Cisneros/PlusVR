@@ -27,44 +27,28 @@ class MedicController {
     this.router.post(this.BASE_PATH + 'rating/:id/:rating', this.rateDoctor);
   }
 
-  // GET
-  // /vr/api/doctor/rating/:id/:rating
-
-  private rateDoctor = async (request: express.Request, response: express.Response) => {
-    const id = request.params.id;
-    const rating  = Number(request.params.rating);
-    const doctor = await doctorModel.findById(id);
-    const currentRating = doctor.rating? doctor.rating * doctor.ratingCount : 0;
-    doctor.ratingCount? doctor.ratingCount++ : doctor.ratingCount = 1;
-    const newRating = ((currentRating + rating) / doctor.ratingCount);
-    doctor.rating = newRating;
-    doctor.save();
-    response.send("Rating updated successfully");
-        
-
-  };
-
+  
   // GET
   // /vr/api/doctor/
-
+  
   private getAllDoctors = async (request: express.Request, response: express.Response) => {
     const doctors = await doctorModel.find().populate('person');
     response.send(doctors);
   };
-
-   // GET
+  
+  // GET
   // /vr/api/doctor/speciality/:speciality
-
+  
   private getDoctorsBySpecialty = async (request: express.Request, response: express.Response) => {
     const speciality = request.params.speciality;
     const doctors = await doctorModel.find({speciality: speciality}).populate('person');
     response.send(doctors);
   };
-
-
+  
+  
   // GET by ID
   // /vr/api/doctor/:id
-
+  
   private getDoctorById = (request: express.Request, response: express.Response) => {
     const id = request.params.id;
     doctorModel.findById(id).then(async doctor => {
@@ -72,44 +56,44 @@ class MedicController {
       response.send(doctor);
     });
   };
-
-    // GET by ID
+  
+  // GET by ID
   // /vr/api/doctor/week/:id
-
+  
   private getWorkableWeekById = (request: express.Request, response: express.Response) => {
     const id = request.params.id;
     doctorModel.findById(id).then(doctor => {
       response.send(doctor.workableWeek);
     });
   };
-
+  
   /*
-/vr/api/doctor/
-
-POST:{
-  person: {
-    firstName: String,
-    lastName: String,
-    birthDate: Date,
-    dni: Number,
-    phone: Number
+  /vr/api/doctor/
+  
+  POST:{
+    person: {
+      firstName: String,
+      lastName: String,
+      birthDate: Date,
+      dni: Number,
+      phone: Number
+    }
+    doctor: {
+      speciality: String
+    }
   }
-  doctor: {
-    speciality: String
-  }
-}
-
-
-
-*/
-
-  private createDoctor = (request: express.Request, response: express.Response) => {
-    const newPerson = request.body.person;
-    const doctorData = request.body.doctor;
-    const createdPerson = new personModel(newPerson);
-
-    createdPerson.save().then(person => {
-      doctorData.person = person.id;
+  
+  
+  
+  */
+ 
+ private createDoctor = (request: express.Request, response: express.Response) => {
+   const newPerson = request.body.person;
+   const doctorData = request.body.doctor;
+   const createdPerson = new personModel(newPerson);
+   
+   createdPerson.save().then(person => {
+     doctorData.person = person.id;
       const createdDoctor = new doctorModel(doctorData);
       createdDoctor.save().then(async savedDoctor => {
         await savedDoctor.populate('person').execPopulate();
@@ -117,35 +101,35 @@ POST:{
       });
     });
   };
-
+  
   /*
-POST 
-/vr/api/doctor/work/:id
-body:  
-{
-  WorkableDay:{
-    name: String,
-    number: Number,
-    startHour: Number,
-    finishHour: Number,
-    breakStart: Number,
-    breakFinish: Number,
-    maxAppointments: Number
+  POST 
+  /vr/api/doctor/work/:id
+  body:  
+  {
+    WorkableDay:{
+      name: String,
+      number: Number,
+      startHour: Number,
+      finishHour: Number,
+      breakStart: Number,
+      breakFinish: Number,
+      maxAppointments: Number
+    }
   }
-}
-*/
-
-  private addWorkableDay = (request: express.Request, response: express.Response) => {
-    const id = request.params.id;
-    doctorModel.findById(id).then(doctor => {
-      if (doctor.workableWeek.length > 0) {
-        const dayAlreadyExists = doctor.workableWeek.find(day => day.number === request.body.workableDay.number);
-        if (dayAlreadyExists) {
-        doctor.workableWeek = doctor.workableWeek.filter( element => !(element.number === dayAlreadyExists.number));
-        doctor.workableWeek.push(request.body.workableDay);
-        doctor.save();
-        response.send(`Day ${request.body.workableDay.number} updated succesfully`);
-        return;
+  */
+ 
+ private addWorkableDay = (request: express.Request, response: express.Response) => {
+   const id = request.params.id;
+   doctorModel.findById(id).then(doctor => {
+     if (doctor.workableWeek.length > 0) {
+       const dayAlreadyExists = doctor.workableWeek.find(day => day.number === request.body.workableDay.number);
+       if (dayAlreadyExists) {
+         doctor.workableWeek = doctor.workableWeek.filter( element => !(element.number === dayAlreadyExists.number));
+         doctor.workableWeek.push(request.body.workableDay);
+         doctor.save();
+         response.send(`Day ${request.body.workableDay.number} updated succesfully`);
+         return;
         } else {
           doctor.workableWeek.push(request.body.workableDay);
           doctor.save();
@@ -158,8 +142,25 @@ body:
       }
     });
   };
-
-    /*
+  
+  // POST
+  // /vr/api/doctor/rating/:id/:rating
+ 
+  private rateDoctor = async (request: express.Request, response: express.Response) => {
+    const id = request.params.id;
+    const rating  = Number(request.params.rating);
+    const doctor = await doctorModel.findById(id);
+    const currentRating = doctor.rating? doctor.rating * doctor.ratingCount : 0;
+    doctor.ratingCount? doctor.ratingCount++ : doctor.ratingCount = 1;
+    const newRating = ((currentRating + rating) / doctor.ratingCount);
+    doctor.rating = newRating;
+    doctor.save();
+    response.send("Rating updated successfully");
+        
+ 
+  };
+  
+  /*
 POST 
 /vr/api/doctor/prepaid/:id
 body:  
