@@ -22,9 +22,27 @@ class MedicController {
     this.router.get(this.BASE_PATH + 'speciality/:speciality', this.getDoctorsBySpecialty);
     this.router.get(this.BASE_PATH + ':id', this.getDoctorById);
     this.router.post(this.BASE_PATH + 'work/:id', this.addWorkableDay);
-    this.router.get(this.BASE_PATH + '/vr/api/doctor/week/:id', this.getWorkableWeekById);    
+    this.router.get(this.BASE_PATH + 'week/:id', this.getWorkableWeekById);    
     this.router.post(this.BASE_PATH + 'prepaid/:id', this.addPrepaid);
+    this.router.post(this.BASE_PATH + 'rating/:id/:rating', this.rateDoctor);
   }
+
+  // GET
+  // /vr/api/doctor/rating/:id/:rating
+
+  private rateDoctor = async (request: express.Request, response: express.Response) => {
+    const id = request.params.id;
+    const rating  = Number(request.params.rating);
+    const doctor = await doctorModel.findById(id);
+    const currentRating = doctor.rating? doctor.rating * doctor.ratingCount : 0;
+    doctor.ratingCount? doctor.ratingCount++ : doctor.ratingCount = 1;
+    const newRating = ((currentRating + rating) / doctor.ratingCount);
+    doctor.rating = newRating;
+    doctor.save();
+    response.send("Rating updated successfully");
+        
+
+  };
 
   // GET
   // /vr/api/doctor/

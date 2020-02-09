@@ -23,6 +23,7 @@ const doctorSchema = new mongoose.Schema({
     speciality: String,
     workableWeek: [workableDaySchema],
     rating: Number,
+    ratingCount: 0,
     prepaid: [prepaidSchema]
 
 })
