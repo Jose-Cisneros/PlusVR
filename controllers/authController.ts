@@ -1,0 +1,74 @@
+import express = require('express');
+import { ApiConstants } from '../helpers/constants/api.constants';
+import doctorModel from '../model/domain/doctor';
+import personModel from '../model/domain/person';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs'
+import { Request, Response } from 'express'
+
+
+const SECRET_KEY = 'secretkey12345'
+
+class AuthController {
+  private BASE_PATH = ApiConstants.API_BASE_PATH + 'auth/';
+
+  public router = express.Router();
+
+  constructor() {
+    this.initializeRoutes();
+  }
+
+  private initializeRoutes() {
+    this.router.get(this.BASE_PATH + 'hw', function(req, res) {
+      res.send('Hello from the patient world!');
+    });
+
+    this.router.post(this.BASE_PATH + 'register', this.createDoctor);
+    this.router.post(this.BASE_PATH + 'login', this.login);
+    
+  
+  
+  }
+  
+  private createDoctor = (request: Request, response: Response) => {
+    const newPerson = request.body.person;
+    const doctorData = request.body.doctor;
+    doctorData.password = bcrypt.hashSync(doctorData.password);
+    const createdPerson = new personModel(newPerson);
+    
+
+    createdPerson.save().then(person => {
+      doctorData.person = person.id;
+      const createdDoctor = new doctorModel(doctorData);
+      createdDoctor.save().then(async savedDoctor => {
+        const accessToken: string = jwt.sign({ _id: savedDoctor._id}, SECRET_KEY, {expiresIn : 60 * 60 } )
+        await savedDoctor.populate('person').execPopulate();
+        
+        
+        response.header('token', accessToken).send( savedDoctor) ;
+      });
+    });
+  };
+
+  private login = async (req: Request, res: Response) => {
+    console.log(req.body);
+    const email = req.body.email;
+    const doctor = await doctorModel.findOne({email: email}).populate('person');
+    if (!doctor) return res.status(400).json('email or password is wrong');
+    const validate : boolean =  await bcrypt.compare(req.body.password, doctor.password);
+    if (!validate) return res.status(400).json('Email or Password is wrong');
+    const accessToken: string = jwt.sign({ _id: doctor._id}, SECRET_KEY, {expiresIn : 60 * 60 * 24 });
+    res.status(200).send({
+      user: doctor,
+      token: accessToken
+    });
+     
+  };
+
+ 
+}
+
+
+
+
+export default AuthController;
