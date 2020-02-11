@@ -17,6 +17,10 @@ const prepaidSchema = new mongoose.Schema({
     name: String
 })
 
+const reviewSchema = new mongoose.Schema({
+    comment: String
+})
+
 
 const doctorSchema = new mongoose.Schema({
     person: {
@@ -27,10 +31,11 @@ const doctorSchema = new mongoose.Schema({
     workableWeek: [workableDaySchema],
     rating: Number,
     ratingCount: 0,
+    review: [reviewSchema],
     prepaid: [prepaidSchema],
     email: {
         type: String,
-        required: true,
+        required: false,
         unique: true
     },
     password: String,
