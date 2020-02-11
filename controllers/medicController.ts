@@ -147,6 +147,12 @@ class MedicController {
   
   // POST
   // /vr/api/doctor/rating/:id/:rating
+  /*
+  body:  
+  {
+    comment:String
+  }
+  */
  
   private rateDoctor = async (request: express.Request, response: express.Response) => {
     const id = request.params.id;
@@ -155,6 +161,7 @@ class MedicController {
     const currentRating = doctor.rating? doctor.rating * doctor.ratingCount : 0;
     doctor.ratingCount? doctor.ratingCount++ : doctor.ratingCount = 1;
     const newRating = ((currentRating + rating) / doctor.ratingCount);
+    if(request.body.review) doctor.review.push(request.body.review);
     doctor.rating = newRating;
     doctor.save();
     response.send("Rating updated successfully");
