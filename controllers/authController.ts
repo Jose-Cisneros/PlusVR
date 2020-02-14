@@ -5,6 +5,7 @@ import personModel from '../model/domain/person';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs'
 import { Request, Response } from 'express'
+import patientModel from '../model/domain/patient';
 
 
 const SECRET_KEY = 'secretkey12345'
@@ -25,6 +26,8 @@ class AuthController {
 
     this.router.post(this.BASE_PATH + 'register', this.createDoctor);
     this.router.post(this.BASE_PATH + 'login', this.login);
+    this.router.post(this.BASE_PATH+ 'registerPatient', this.createPatient);
+    this.router.post(this.BASE_PATH+ 'loginPatient', this.loginPatient);
     
   
   
@@ -49,6 +52,25 @@ class AuthController {
       });
     });
   };
+  private createPatient = (request: express.Request, response: express.Response) => {
+    const newPerson = request.body.person;
+    const patientData = request.body.patient;
+    patientData.password = bcrypt.hashSync(patientData.password);
+    const createdPerson = new personModel(newPerson);
+
+    createdPerson.save().then(person => {
+      patientData.person = person.id;
+      const createdPatient = new patientModel(patientData);
+      createdPatient.save().then(async savedPatient => {
+        const accessToken: string = jwt.sign({ _id: savedPatient._id}, SECRET_KEY, {expiresIn : 60 * 60 } )
+        await savedPatient.populate('person').execPopulate();
+        response.send(savedPatient);
+      });
+    });
+  };
+
+
+
 
   private login = async (req: Request, res: Response) => {
     console.log(req.body);
@@ -60,6 +82,21 @@ class AuthController {
     const accessToken: string = jwt.sign({ _id: doctor._id}, SECRET_KEY, {expiresIn : 60 * 60 * 24 });
     res.status(200).send({
       user: doctor,
+      token: accessToken
+    });
+     
+  };
+
+  private loginPatient = async (req: Request, res: Response) => {
+    console.log(req.body);
+    const email = req.body.email;
+    const patient = await patientModel.findOne({email: email}).populate('person');
+    if (!patient) return res.status(400).json('email or password is wrong');
+    const validate : boolean =  await bcrypt.compare(req.body.password, patient.password);
+    if (!validate) return res.status(400).json('Email or Password is wrong');
+    const accessToken: string = jwt.sign({ _id: patient._id}, SECRET_KEY, {expiresIn : 60 * 60 * 24 });
+    res.status(200).send({
+      user: patient,
       token: accessToken
     });
      
