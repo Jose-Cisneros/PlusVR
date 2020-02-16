@@ -1,4 +1,4 @@
-import { TokenValidation } from './../middleware/validateToken';
+
 import express = require('express');
 import { ApiConstants } from '../helpers/constants/api.constants';
 import doctorModel from '../model/domain/doctor';
