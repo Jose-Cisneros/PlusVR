@@ -61,7 +61,12 @@ class ClinicController {
 
   private getDoctorsByClinic = async (request: express.Request, response: express.Response) => {
     const id = request.params.id;
-    const populated = await clinicDoctorModel.find({clinic: id}).populate('doctor');
+    const populated = await clinicDoctorModel.find({clinic: id}).populate({
+      path: 'doctor',
+      populate: {
+        path:'person'
+      }
+    });
     
     response.send(populated);    
   };
