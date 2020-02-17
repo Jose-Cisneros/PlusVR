@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs'
 import { Request, Response } from 'express'
 import patientModel from '../model/domain/patient';
+import prepaidModel from '../model/domain/prepaid'
 
 
 const SECRET_KEY = 'secretkey12345'
@@ -28,6 +29,8 @@ class AuthController {
     this.router.post(this.BASE_PATH + 'login', this.login);
     this.router.post(this.BASE_PATH+ 'registerPatient', this.createPatient);
     this.router.post(this.BASE_PATH+ 'loginPatient', this.loginPatient);
+    this.router.post(this.BASE_PATH + 'newPrepaid', this.newPrepaid);
+    this.router.get(this.BASE_PATH+ 'allPrepaids', this.allPrepaids);
     
   
   
@@ -102,6 +105,26 @@ class AuthController {
      
   };
 
+  private all  = async (request: express.Request, response: express.Response) => {
+    prepaidModel.find().then(res =>   response.send(res) );
+  
+ 
+ }
+
+ private allPrepaids  = async (request: express.Request, response: express.Response) => {
+  const prepaid = await prepaidModel.find()
+      response.send(prepaid) 
+ 
+
+}
+
+private newPrepaid =  (request: express.Request, response: express.Response) => {
+ const prepaid = new prepaidModel();
+ prepaid.name = request.body.name
+ prepaid.save().then( res =>
+  response.status(400).send(prepaid))
+
+}
  
 }
 
