@@ -18,6 +18,7 @@ class PatientController {
     });
 
     this.router.post(this.BASE_PATH + 'create', this.createPatient);
+    this.router.post(this.BASE_PATH + 'update/:id', this.updatePatient);
     this.router.get(this.BASE_PATH + 'all', this.getAllpatients);
     this.router.get(this.BASE_PATH + ':id', this.getpatientById);
   }
@@ -70,5 +71,34 @@ POST:{
       });
     });
   };
+
+      /*
+  /vr/api/patient/update/:id
+  
+POST:{
+  person: {
+    firstName: String,
+    lastName: String,
+    birthDate: Date,
+    dni: Number,
+    phone: Number
+  }
+}
+  
+  
+  
+  */
+ 
+ private updatePatient = async (request: express.Request, response: express.Response) => {
+  const id = request.params.id;
+  const updated = request.body;
+
+  let patient = await patientModel.findById(id);
+
+  let res1 = await personModel.update({_id: patient.person}, updated.person);
+
+
+  response.send('Patient updated');
+ };
 }
 export default PatientController;

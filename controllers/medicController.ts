@@ -20,6 +20,7 @@ class MedicController {
     });
 
     this.router.post(this.BASE_PATH + 'create', this.createDoctor);
+    this.router.post(this.BASE_PATH + 'update/:id', this.updateDoctor);
     this.router.get(this.BASE_PATH + 'all', this.getAllDoctors);
     this.router.get(this.BASE_PATH + 'speciality/:speciality', this.getDoctorsBySpecialty);
     this.router.get(this.BASE_PATH + ':id', this.getDoctorById);
@@ -70,7 +71,7 @@ class MedicController {
   };
   
   /*
-  /vr/api/doctor/
+  /vr/api/doctor/new
   
   POST:{
     person: {
@@ -103,6 +104,39 @@ class MedicController {
       });
     });
   };
+
+    /*
+  /vr/api/doctor/update/:id
+  
+  POST:{
+    person: {
+      firstName: String,
+      lastName: String,
+      birthDate: Date,
+      dni: Number,
+      phone: Number
+    }
+    doctor: {
+      speciality: String
+      adress: String
+    }
+  }
+  
+  
+  
+  */
+ 
+ private updateDoctor = async (request: express.Request, response: express.Response) => {
+  const id = request.params.id;
+  const updated = request.body;
+
+  let doctor = await doctorModel.findById(id);
+
+  let res1 = await personModel.update({_id: doctor.person}, updated.person);
+  let res2 = await doctorModel.update({_id: doctor.id}, {speciality: updated.doctor.speciality});
+
+  response.send('Doctor updated');
+ };
   
   /*
   POST 
