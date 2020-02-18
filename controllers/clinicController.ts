@@ -18,12 +18,13 @@ class ClinicController {
     this.router.get(this.BASE_PATH + 'doctors/:id', this.getDoctorsByClinic);
     this.router.get(this.BASE_PATH + 'all', this.getAllClinics);
     this.router.get(this.BASE_PATH + ':id', this.getClinicById);
+    this.router.get(this.BASE_PATH + 'doctors/:id/:speciality', this.getDoctorsBySpeciality);
 
 
   }
 
     /*
-  /vr/api/clinic/
+  /vr/api/clinic/new
   
   POST:{
     clinic: {
@@ -40,6 +41,8 @@ class ClinicController {
     
     createdClinic.save().then(response.send(createdClinic));
   };
+
+  // /vr/api/clinic/add
 
   /*
   POST:{
@@ -88,6 +91,20 @@ class ClinicController {
     response.send(clinic);    
   };
 
+  // GET  /vr/api/appointment/clinic/:id/:speciality
+
+  private getDoctorsBySpeciality = async (request: express.Request, response: express.Response) => {
+    const id = request.params.id;
+    const speciality = request.params.speciality;
+    const populated = await clinicDoctorModel.find({clinic: id}).populate({
+      path: 'doctor',
+      populate: {
+        path:'person'
+      }
+    });
+    const filtered = populated.filter(populated => populated.doctor.speciality === speciality);
+    response.send(filtered);      
+  };
 
 
 }
