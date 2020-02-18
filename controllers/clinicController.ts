@@ -16,6 +16,7 @@ class ClinicController {
     this.router.post(this.BASE_PATH + 'new', this.newClinic);
     this.router.post(this.BASE_PATH + 'add', this.addDoctorToClinic);
     this.router.get(this.BASE_PATH + 'doctors/:id', this.getDoctorsByClinic);
+    this.router.get(this.BASE_PATH + 'myclinics/:id', this.getClinicsByDoctor);
     this.router.get(this.BASE_PATH + 'all', this.getAllClinics);
     this.router.get(this.BASE_PATH + ':id', this.getClinicById);
     this.router.get(this.BASE_PATH + 'doctors/:id/:speciality', this.getDoctorsBySpeciality);
@@ -60,7 +61,7 @@ class ClinicController {
   };
 
   
-  // GET  /vr/api/appointment/clinic/doctors/:id
+  // GET  /vr/api/clinic/doctors/:id
 
   private getDoctorsByClinic = async (request: express.Request, response: express.Response) => {
     const id = request.params.id;
@@ -74,7 +75,16 @@ class ClinicController {
     response.send(populated);    
   };
 
-  // GET  /vr/api/appointment/clinic/all
+    // GET  /vr/api/clinic/myclinics/:id
+
+    private getClinicsByDoctor = async (request: express.Request, response: express.Response) => {
+      const id = request.params.id;
+      const populated = await clinicDoctorModel.find({doctor: id}).populate('clinic');
+      
+      response.send(populated);    
+    };
+
+  // GET  /vr/api/clinic/all
 
   private getAllClinics = async (request: express.Request, response: express.Response) => {
     const clinics = await clinicModel.find();
@@ -83,7 +93,7 @@ class ClinicController {
   };
 
 
-  // GET  /vr/api/appointment/clinic/:id
+  // GET  /vr/api/clinic/:id
 
   private getClinicById = async (request: express.Request, response: express.Response) => {
     const clinic = await clinicModel.findById(request.params.id);
@@ -91,7 +101,7 @@ class ClinicController {
     response.send(clinic);    
   };
 
-  // GET  /vr/api/appointment/clinic/:id/:speciality
+  // GET  /vr/api/clinic/:id/:speciality
 
   private getDoctorsBySpeciality = async (request: express.Request, response: express.Response) => {
     const id = request.params.id;
