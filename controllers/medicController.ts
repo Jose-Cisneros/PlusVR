@@ -157,6 +157,13 @@ class MedicController {
  
  private addWorkableDay = (request: express.Request, response: express.Response) => {
    const id = request.params.id;
+   if (request.body.workableDay.finishHour > 24 
+      || request.body.workableDay.startHour > 24 
+      || request.body.workableDay.breakStart > 24 
+      || request.body.workableDay.breakFinish > 24) {
+    response.status(400).send('Day can not have more than 24 hours, tonto');
+    return;
+   }
    doctorModel.findById(id).then(doctor => {
      if (doctor.workableWeek.length > 0) {
        const dayAlreadyExists = doctor.workableWeek.find(day => day.number === request.body.workableDay.number);
