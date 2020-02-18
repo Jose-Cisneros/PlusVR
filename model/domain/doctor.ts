@@ -32,6 +32,7 @@ const doctorSchema = new mongoose.Schema({
     rating: Number,
     adress: String,
     ratingCount: 0,
+    profileUrl: String,
     review: [reviewSchema],
     prepaid: [prepaidSchema],
     email: {
