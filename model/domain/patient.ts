@@ -6,6 +6,7 @@ const patientSchema = new mongoose.Schema({
         ref: 'Person',
         type: mongoose.Schema.Types.ObjectId,
     },
+    profileUrl: String,
     email: String,
     password: String,
 
