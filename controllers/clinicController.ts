@@ -15,6 +15,7 @@ class ClinicController {
   public initializeRoutes() {
     this.router.post(this.BASE_PATH + 'new', this.newClinic);
     this.router.post(this.BASE_PATH + 'add', this.addDoctorToClinic);
+    this.router.delete(this.BASE_PATH + 'remove', this.removeDoctorFromClinic);
     this.router.get(this.BASE_PATH + 'doctors/:id', this.getDoctorsByClinic);
     this.router.get(this.BASE_PATH + 'myclinics/:id', this.getClinicsByDoctor);
     this.router.get(this.BASE_PATH + 'all', this.getAllClinics);
@@ -58,6 +59,25 @@ class ClinicController {
     const newRelation = request.body;
     const createdRelation = new clinicDoctorModel(newRelation);
     createdRelation.save().then(response.send(createdRelation));
+  };
+
+  // /vr/api/clinic/remove
+  /*
+  DELETE:{
+    clinic: id,
+    doctor: id
+    }
+  }
+  
+  */
+
+  private removeDoctorFromClinic = async (request: express.Request, response: express.Response) => {
+    const toRemove = await clinicDoctorModel.deleteOne({clinic: request.body.clinic, doctor: request.body.doctor});
+    if( toRemove.n >= 1) {
+      response.send('doctor was removed from clinic');
+    } else {
+      response.send('doctor is not associated with the clinic');
+    }
   };
 
   
