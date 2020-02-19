@@ -67,7 +67,10 @@ class AuthController {
       createdPatient.save().then(async savedPatient => {
         const accessToken: string = jwt.sign({ _id: savedPatient._id}, SECRET_KEY, {expiresIn : 60 * 60 } )
         await savedPatient.populate('person').execPopulate();
-        response.send(savedPatient);
+        response.status(200).send({
+          user: savedPatient,
+          token: accessToken
+        });
       });
     });
   };
